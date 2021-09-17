@@ -77,6 +77,47 @@ SELECT pr.maker, AVG(lp.screen) FROM Product pr, Laptop lp
 WHERE pr.model=lp.model
 GROUP BY maker
 
+####Найдите производителей, выпускающих по меньшей мере три различных модели ПК. Вывести: Maker, число моделей ПК.
+SELECT pr.maker, COUNT(pr.model) AS Count_model  FROM Product pr
+WHERE type = 'PC'
+GROUP BY maker
+HAVING COUNT(pr.model) >=3
+
+#### Hайдите максимальную цену ПК, выпускаемых каждым производителем, у которого есть модели в таблице PC.Вывести: maker, максимальная цена.
+SELECT pr.maker, MAX(pc.price) FROM Product pr, PC pc
+WHERE pr.model= pc.model
+GROUP BY pr.maker
+
+#### Для каждого значения скорости ПК, превышающего 600 МГц, определите среднюю цену ПК с такой же скоростью. Вывести: speed, средняя цена.
+SELECT speed, AVG(price) FROM PC
+WHERE speed > 600
+GROUP BY speed
+
+####Найдите производителей, которые производили бы как ПК со скоростью не менее 750 МГц, так и ПК-блокноты со скоростью не менее 750 МГц. Вывести: Maker
+SELECT pr.maker FROM Product pr, PC pc
+WHERE pr.model = pc.model AND pc.speed >=750
+INTERSECT
+SELECT pr.maker FROM Product pr, Laptop lt
+WHERE pr.model=lt.model AND lt.speed >=750
+
+#### Перечислите номера моделей любых типов, имеющих самую высокую цену по всей имеющейся в базе данных продукции.
+SELECT DISTINCT pr.model FROM Product pr, PC pc, Laptop lt, Printer pi
+WHERE pr.model IN(pc.model, lt.model, pi.model)
+AND pc.price = (SELECT MAX(price) from PC)
+AND lt.price = (SELECT MAX(price) from Laptop)
+AND pi.price = (SELECT MAX(price) from PRINTER)
+AND (
+(pc.price >= lt.price AND pc.price>=pi.price AND pr.model = pc.model)
+OR(lt.price >= pc.price AND lt.price>=pi.price AND pr.model=lt.model) 
+OR(pi.price >= pc.price AND pi.price>=lt.price AND pr.model=pi.model))
+
+#### Найдите среднюю цену ПК и ПК-блокнотов, выпущенных производителем A (латинская буква). Вывести: одна общая средняя цена.
+SELECT AVG(price) FROM (
+SELECT price FROM PC WHERE model IN (SELECT model FROM Product WHERE maker= 'A' AND type = 'PC')
+UNION ALL
+SELECT price FROM Laptop WHERE model IN (SELECT model FROM Product WHERE maker = 'A' AND type ='Laptop')) AS avg_price
+
+
 ###end of working in DB PC company, start DB Ships
 
 #### Найдите класс, имя и страну для кораблей из таблицы Ships, имеющих не менее 10 орудий.
